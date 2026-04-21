@@ -17,6 +17,7 @@
     "files": [
       "main.js",
       "overlay.html",
+      "overlay-preload.js",
       "package.json"
     ],
     "win": {
