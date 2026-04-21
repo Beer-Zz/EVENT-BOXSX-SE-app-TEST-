@@ -93,8 +93,28 @@
       background: var(--sub-interim-bg, rgba(0,0,0,0.50));
     }
   </style>
+  <style>
+    /* ── HOVER ZONE BUTTON — มุมขวาบน ── */
+    #hoverBtn {
+      position: fixed; top: 12px; right: 12px; z-index: 99999;
+      background: rgba(10,10,10,0.85); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 10px;
+      padding: 8px 14px; color: #efefef; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; display: none; align-items: center; gap: 6px;
+      font-family: 'Noto Sans Thai','Inter',sans-serif;
+      transition: opacity 0.15s, transform 0.15s;
+      user-select: none;
+    }
+    #hoverBtn.visible { display: flex; }
+    #hoverBtn:hover   { background: rgba(30,30,30,0.95); border-color: rgba(255,255,255,0.3); }
+  </style>
 </head>
 <body>
+
+<!-- ── HOVER ZONE BUTTON — เปลี่ยน URL ── -->
+<div id="hoverBtn" onclick="requestChangeUrl()">
+  🔗 เปลี่ยน URL งาน
+</div>
 
 <div class="drag-handle" id="dragHandle">
   <div class="drag-handle-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
@@ -293,6 +313,19 @@
       });
     }
     return group;
+  }
+
+  // ── HOVER ZONE — รับ event จาก main process ผ่าน preload ──
+  if (window.electronAPI) {
+    window.electronAPI.onHoverZone((active) => {
+      const btn = document.getElementById('hoverBtn');
+      if (active) btn.classList.add('visible');
+      else        btn.classList.remove('visible');
+    });
+  }
+
+  function requestChangeUrl() {
+    if (window.electronAPI) window.electronAPI.changeUrl();
   }
 </script>
 </body>
