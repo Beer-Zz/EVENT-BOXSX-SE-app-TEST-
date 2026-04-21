@@ -259,7 +259,7 @@ function createOverlay() {
 // ── HOVER ZONE — มุมขวาบน แสดงปุ่ม "เปลี่ยน URL" ──
 // ไม่แตะ logic เดิมใดๆ — เพิ่มเข้ามาใหม่ทั้งหมด
 // ══════════════════════════════════════════════════════════
-const HOVER_SIZE   = 80;   // px — ขนาด zone มุมขวาบน
+const HOVER_SIZE   = 80;   // px — ขนาด zone มุมซ้ายบน
 const POLL_MS      = 100;  // ms — ความถี่ check เมาส์
 let   _hoverActive = false;
 let   _mouseTimer  = null;
@@ -275,7 +275,7 @@ function startMouseTracking() {
     // คำนวณตำแหน่งเมาส์บนจอนั้น
     const relX = pt.x - bounds.x;
     const relY = pt.y - bounds.y;
-    const inZone = relX >= (bounds.width - HOVER_SIZE) && relY <= HOVER_SIZE;
+    const inZone = relX <= HOVER_SIZE && relY <= HOVER_SIZE;
     if (inZone && !_hoverActive) {
       _hoverActive = true;
       // เปิดรับ mouse events เฉพาะตอนอยู่ใน zone
