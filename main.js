@@ -199,6 +199,7 @@ function createOverlay() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, 'overlay-preload.js'),
     },
   });
 
@@ -212,7 +213,7 @@ function createOverlay() {
 
   overlayWin.setIgnoreMouseEvents(true, { forward: true });
   overlayWin.setAlwaysOnTop(true, 'screen-saver');
-  overlayWin.on('closed', () => { overlayWin = null; });
+  overlayWin.on('closed', () => { overlayWin = null; stopMouseTracking(); });
 
   // ── แจ้ง Flask ว่า Electron พร้อมแล้ว + keepalive ทุก 30s ──
   setTimeout(() => {
@@ -250,7 +251,69 @@ function createOverlay() {
     } catch(e) { setTimeout(listenSSE, 3000); }
   }
   listenSSE();
+  // ── เริ่ม track เมาส์สำหรับ hover zone ──
+  startMouseTracking();
 }
+
+// ══════════════════════════════════════════════════════════
+// ── HOVER ZONE — มุมขวาบน แสดงปุ่ม "เปลี่ยน URL" ──
+// ไม่แตะ logic เดิมใดๆ — เพิ่มเข้ามาใหม่ทั้งหมด
+// ══════════════════════════════════════════════════════════
+const HOVER_SIZE   = 80;   // px — ขนาด zone มุมขวาบน
+const POLL_MS      = 100;  // ms — ความถี่ check เมาส์
+let   _hoverActive = false;
+let   _mouseTimer  = null;
+
+function startMouseTracking() {
+  if (_mouseTimer) return;
+  _mouseTimer = setInterval(() => {
+    if (!overlayWin) return;
+    const pt       = screen.getCursorScreenPoint();
+    const displays = screen.getAllDisplays();
+    const display  = displays[currentDisplayIndex] || displays[0];
+    const bounds   = display.bounds;
+    // คำนวณตำแหน่งเมาส์บนจอนั้น
+    const relX = pt.x - bounds.x;
+    const relY = pt.y - bounds.y;
+    const inZone = relX >= (bounds.width - HOVER_SIZE) && relY <= HOVER_SIZE;
+    if (inZone && !_hoverActive) {
+      _hoverActive = true;
+      // เปิดรับ mouse events เฉพาะตอนอยู่ใน zone
+      overlayWin.setIgnoreMouseEvents(false);
+      overlayWin.webContents.send('hover-zone', true);
+    } else if (!inZone && _hoverActive) {
+      _hoverActive = false;
+      overlayWin.setIgnoreMouseEvents(true, { forward: true });
+      overlayWin.webContents.send('hover-zone', false);
+    }
+  }, POLL_MS);
+}
+
+function stopMouseTracking() {
+  if (_mouseTimer) { clearInterval(_mouseTimer); _mouseTimer = null; }
+}
+
+// ── เปลี่ยน URL จาก hover button ──
+function changeUrl() {
+  showSetupWindow((url) => {
+    if (!url) return;  // กด ข้าม → ไม่ทำอะไร
+    const { tenant, event } = parseTenantEvent(url);
+    _activeTenant = tenant;
+    _activeEvent  = event;
+    // reload overlay ด้วย URL ใหม่
+    if (overlayWin) {
+      session.defaultSession.clearCache().then(() => {
+        const _tp = tenantParams(_activeTenant, _activeEvent);
+        overlayWin.loadURL(`${SERVER}/overlay?lang=both${_tp}`, {
+          extraHeaders: 'Cache-Control: no-cache, no-store\nPragma: no-cache'
+        });
+      });
+    }
+  });
+}
+
+// expose changeUrl ให้ ipcMain รับได้
+ipcMain.on('change-url', () => changeUrl());
 
 // ── ย้าย overlay ไปจอที่ index ── (เหมือนเดิม 100%)
 function moveOverlayToDisplay(index) {
