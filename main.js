@@ -11,7 +11,7 @@ let _activeEvent  = 'default';
 // ── [เพิ่มใหม่] SERVER URL ──
 // - npm start (dev)  → localhost:5000
 // - .exe (cloud)     → Render URL
-const SERVER = process.env.SERVER_URL || 'https://event-boxsx-se.onrender.com';
+const SERVER = process.env.SERVER_URL || 'https://event-box.onrender.com';
 
 // ══════════════════════════════════════════════════════════
 // ── CONFIG STORE — เก็บ URL ที่ลูกค้าวางไว้ ──
@@ -83,14 +83,14 @@ function showSetupWindow(onDone) {
   .btn-skip:hover { background: #222; }
 </style></head>
 <body>
-  <h2>🎬 วาง URL งานของคุณที่นี่</h2>
+  <h2>วาง URL งานของคุณที่นี่</h2>
   <p class="sub">คัดลอก URL จากหน้าควบคุมงานของคุณแล้ววางลงด้านล่างครับ<br>
-  ตัวอย่าง: https://event-boxsx-se.onrender.com/?tenant=TCEB&amp;event=MICE2026</p>
+  ตัวอย่าง: https://event-box.onrender.com/?tenant=TCEB&amp;event=MICE2026</p>
   <label>URL งานของคุณ</label>
   <input id="urlInput" type="text" placeholder="https://..." value="${savedUrl.replace(/"/g, '&quot;')}">
   <div class="err" id="err"></div>
   <div class="row">
-    <button class="btn-ok" onclick="submit()">✅ บันทึกและเปิด Overlay</button>
+    <button class="btn-ok" onclick="submit()">บันทึกและเปิด Overlay</button>
     <button class="btn-skip" onclick="skip()">ข้าม (ใช้ default)</button>
   </div>
 <script>
